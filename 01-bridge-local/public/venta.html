@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Venta con balanza — Opción A (Bridge local)</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a2129; --txt:#e6edf3; --muted:#8b98a5; --line:#2a3540; --accent:#238636; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--txt); display:flex; justify-content:center; padding:24px; }
+  .wrap { width:100%; max-width:920px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  h1 { grid-column:1/3; font-size:15px; font-weight:600; color:var(--muted); margin:0; }
+  h1 b { color:var(--txt); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+  .peso { font-size:52px; font-weight:700; text-align:center; letter-spacing:-1px; }
+  .estado { text-align:center; font-size:14px; font-weight:600; margin-top:2px; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .verde .dot{background:#3fb950}.verde{color:#3fb950}
+  .amarillo .dot{background:#d29922}.amarillo{color:#d29922}
+  .rojo .dot{background:#f85149}.rojo{color:#f85149}
+  input { background:#0f1620; border:1px solid var(--line); border-radius:8px; color:var(--txt); padding:10px 12px; font-size:16px; width:100%; }
+  input[type=number]{ width:90px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; }
+  button:hover{background:#2ea043}
+  button:disabled{ background:#30363d; color:#6e7681; cursor:not-allowed; }
+  button.sec{ background:#30363d; } button.sec:hover{ background:#3c444d; }
+  .fase { font-size:13px; color:var(--accent); font-weight:700; margin-bottom:6px; }
+  .msg { font-size:14px; color:var(--txt); min-height:20px; margin:6px 0 12px; }
+  .row { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; }
+  td.num,th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .total { font-size:24px; font-weight:700; text-align:right; margin-top:10px; }
+  .hint { font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5; }
+  .kbd { font-family:ui-monospace,Consolas,monospace; background:#0f1620; border:1px solid var(--line); border-radius:5px; padding:1px 6px; color:var(--txt); }
+  .hex { font-family:ui-monospace,Consolas,monospace; font-size:11px; color:var(--muted); word-break:break-all; margin-top:8px; }
+  .sim { grid-column:1/3; border-style:dashed; }
+  .log { grid-column:1/3; background:#0a0e13; border:1px solid var(--line); border-radius:10px; padding:10px; height:120px; overflow:auto; font-family:ui-monospace,Consolas,monospace; font-size:11px; color:#7d8590; white-space:pre-wrap; }
+  .ok{color:#3fb950}.bad{color:#f85149}
+  .del{ background:none; color:#f85149; padding:2px 8px; font-size:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Opción A · <b>Venta con balanza</b> — bridge local (COM → REST/WS) · <span id="modo" class="muted"></span></h1>
+
+  <!-- Columna izquierda: balanza + artículo en curso -->
+  <div class="card">
+    <div class="k">Balanza (peso en vivo)</div>
+    <div id="peso" class="peso">— kg</div>
+    <div id="estadoPeso" class="estado rojo"><span class="dot"></span>Desconectado</div>
+    <div class="hex" id="hex">trama: —</div>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+
+    <div id="fase" class="fase">ESPERANDO_PLU</div>
+    <div id="msg" class="msg">Ingresá un PLU y presioná <span class="kbd">Buscar</span> (o Enter).</div>
+
+    <!-- ESPERANDO_PLU -->
+    <div id="panelPlu" class="row">
+      <input id="plu" inputmode="numeric" placeholder="PLU (ej: 1001)" autocomplete="off">
+      <button id="btnBuscar">Buscar PLU</button>
+    </div>
+
+    <!-- ESPERANDO_CANTIDAD -->
+    <div id="panelCantidad" class="row" style="display:none">
+      <span>Cantidad:</span>
+      <button class="sec" id="menos">−</button>
+      <input id="cantidad" type="number" min="1" step="1" value="1">
+      <button class="sec" id="mas">+</button>
+    </div>
+
+    <div class="row">
+      <button id="btnAgregar" disabled>Agregar al carrito (tecla 1)</button>
+      <button id="btnCancelar" class="sec">Cancelar artículo (Esc)</button>
+    </div>
+  </div>
+
+  <!-- Columna derecha: carrito -->
+  <div class="card">
+    <div class="k">Carrito</div>
+    <table>
+      <thead><tr><th>Producto</th><th>Detalle</th><th class="num">Importe</th><th></th></tr></thead>
+      <tbody id="carrito"></tbody>
+    </table>
+    <div class="total" id="total">$0</div>
+    <div class="row" style="justify-content:flex-end">
+      <button id="btnCerrar">Nueva venta · cerrar (Enter)</button>
+    </div>
+    <div class="hint">
+      <span class="kbd">1</span> agrega el artículo actual al carrito ·
+      <span class="kbd">Enter</span> / <b>Nueva venta</b> cierra la venta ·
+      <span class="kbd">Esc</span> cancela el artículo en curso.<br>
+      La tecla <span class="kbd">1</span> se bloquea si el peso es <b>inestable</b>.
+    </div>
+  </div>
+
+  <!-- Simulador (solo visible en modo SIMULAR) -->
+  <div id="panelSim" class="card sim" style="display:none">
+    <div class="k">Simulador de peso (no hay balanza)</div>
+    <div class="row">
+      <span>Gramos:</span>
+      <input id="simGramos" type="number" value="1250" step="10">
+      <label><input id="simEstable" type="checkbox" checked> estable</label>
+      <span>Tara (g):</span>
+      <input id="simTara" type="number" value="0" step="10">
+      <button id="btnSim">Fijar peso simulado</button>
+    </div>
+    <div class="hint">Simula el peso que devolvería la balanza por Función 1 (misma trama, mismo parser). Cambialo y mirá el peso en vivo a la izquierda.</div>
+  </div>
+
+  <div id="log" class="log"></div>
+</div>
+<script src="venta.js"></script>
+</body>
+</html>

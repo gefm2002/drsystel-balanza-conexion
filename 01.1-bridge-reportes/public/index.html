@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alt 1.1 — Peso en vivo (Función 1)</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a2129; --txt:#e6edf3; --muted:#8b98a5; --line:#2a3540; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--txt); display:flex; justify-content:center; padding:24px; }
+  .wrap { width:100%; max-width:560px; }
+  h1 { font-size:15px; font-weight:600; color:var(--muted); margin:0 0 16px; }
+  h1 b { color:var(--txt); }
+  a { color:#58a6ff; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px; }
+  .peso { font-size:64px; font-weight:700; text-align:center; letter-spacing:-1px; }
+  .estado { text-align:center; font-size:15px; font-weight:600; margin-top:4px; }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+  .verde .dot{background:#3fb950}.verde{color:#3fb950}
+  .amarillo .dot{background:#d29922}.amarillo{color:#d29922}
+  .rojo .dot{background:#f85149}.rojo{color:#f85149}
+  .grid { display:flex; gap:12px; margin-top:18px; }
+  .box { flex:1; background:#0f1620; border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .box .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .box .v { font-size:18px; font-weight:600; margin-top:2px; }
+  .hex { font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--muted); word-break:break-all; margin-top:14px; }
+  .ok{color:#3fb950;font-weight:700}.bad{color:#f85149;font-weight:700}
+  .nav { margin-top:16px; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Alternativa 1.1 · <b>Peso en vivo</b> (Función 1) — la base sigue funcionando</h1>
+  <div class="card">
+    <div id="peso" class="peso">— kg</div>
+    <div id="estado" class="estado rojo"><span class="dot"></span>Desconectado</div>
+    <div class="grid">
+      <div class="box"><div class="k">Tara</div><div id="tara" class="v">— kg</div></div>
+      <div class="box"><div class="k">Neto</div><div id="neto" class="v">— kg</div></div>
+    </div>
+    <div class="hex" id="hex">trama: —</div>
+    <div class="hex" id="xor">XOR —</div>
+    <div class="nav">→ <a href="reportes.html">Reporte de ventas (Función 72)</a></div>
+  </div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+function setEstado(txt, cls){ const e=$('estado'); e.className='estado '+cls; e.innerHTML='<span class="dot"></span>'+txt; }
+function render(d){
+  if(!d) return;
+  if(d.connected===false || d.error){ setEstado(d.error?'Error: '+d.error:'Desconectado','rojo'); return; }
+  if(d.pesoKg!=null){
+    $('peso').textContent = d.pesoKg.toFixed(3)+' kg';
+    const tara=(d.taraGramos||0)/1000;
+    $('tara').textContent = tara.toFixed(3)+' kg';
+    $('neto').textContent = (d.pesoKg-tara).toFixed(3)+' kg';
+    setEstado(d.estable?'Estable':'Inestable', d.estable?'verde':'amarillo');
+    $('hex').textContent = 'trama: '+(d.rawHex||'—');
+    $('xor').innerHTML = d.xorOk?'<span class="ok">XOR ✓</span>':'<span class="bad">XOR ✗</span>';
+  } else if(d.estado==='conectado'){ setEstado('Conectado (esperando peso…)','amarillo'); }
+}
+function connect(){
+  const ws=new WebSocket(`ws://${location.host}`);
+  ws.onmessage=(e)=>render(JSON.parse(e.data));
+  ws.onclose=()=>{ setEstado('Desconectado','rojo'); setTimeout(connect,1500); };
+}
+connect();
+</script>
+</body>
+</html>

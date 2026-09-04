@@ -1,0 +1,14 @@
+# Dependencias
+node_modules/
+
+# Logs y temporales
+*.log
+npm-debug.log*
+
+# Sesiones/estado de herramientas
+.omc/
+
+# Basura de OS
+Thumbs.db
+Desktop.ini
+.DS_Store

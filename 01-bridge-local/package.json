@@ -1,0 +1,15 @@
+{
+  "name": "poc-bridge-local",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PoC Opción A — Bridge local: COM serial @115200 -> REST + WebSocket -> navegador",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "serialport": "^12.0.0",
+    "ws": "^8.18.0"
+  }
+}

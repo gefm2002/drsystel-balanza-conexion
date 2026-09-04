@@ -1,0 +1,9 @@
+{
+  "name": "poc-web-serial",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PoC Opción D — Web Serial API: el navegador habla directo al COM (sin backend)",
+  "scripts": {
+    "start": "node serve.js"
+  }
+}

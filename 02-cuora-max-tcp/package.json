@@ -1,0 +1,14 @@
+{
+  "name": "poc-cuora-max-tcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PoC Opción B — Cuora MAX por TCP/IP: socket a la balanza -> REST + WebSocket -> navegador",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}
