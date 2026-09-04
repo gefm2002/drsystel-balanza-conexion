@@ -2,7 +2,7 @@
 
 4 pruebas de concepto independientes, una por carpeta, cada una con una **interfaz web simple** para verificar
 que el peso de la balanza llega correctamente a la PC. Todas usan el mismo protocolo **maestro-esclavo @115200**
-(trama `[Dir][Func][Datos][XOR]`, polling de **Función 1**). Ver fundamentos en `../00-conexion-balanza.md`.
+(trama `[Dir][Func][Datos][XOR]`, polling de **Función 1**). Ver fundamentos en [`00-conexion-balanza.md`](./00-conexion-balanza.md).
 
 Cada UI muestra: peso en kg · semáforo (verde estable / amarillo inestable / rojo desconectado) · tara · neto ·
 **trama cruda en hex** · validación de **XOR**.

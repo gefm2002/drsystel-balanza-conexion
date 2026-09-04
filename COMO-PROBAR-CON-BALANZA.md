@@ -133,4 +133,4 @@ La opción B (TCP) no compite por el COM.
 
 > Si **ninguna** opción recibe datos pero el puerto abre bien, el primer sospechoso es el **baudrate** o el
 > **modo de protocolo de la balanza**. El 115200 viene del ejemplo VB oficial de Systel; si no responde,
-> probar 9600 es el primer paso. Ver `../00-conexion-balanza.md` (sección "Plan de validación").
+> probar 9600 es el primer paso. Ver [`00-conexion-balanza.md`](./00-conexion-balanza.md) (sección "Plan de validación").
