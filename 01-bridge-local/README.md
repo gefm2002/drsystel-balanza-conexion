@@ -8,8 +8,8 @@ captura puntual). El navegador solo consume HTTP/WS — no toca bytes seriales. 
 
 ```bash
 npm install
-npm start            # usa COM3 por defecto
-# o indicando el puerto:
+npm start            # detecta solo el COM de la balanza (FTDI VID 0403 / PID 6001)
+# o forzando el puerto (si hay más de un FTDI conectado):
 COM_PORT=COM5 npm start        # PowerShell: $env:COM_PORT="COM5"; npm start
 ```
 

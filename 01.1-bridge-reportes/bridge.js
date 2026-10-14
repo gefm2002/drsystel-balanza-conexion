@@ -1,7 +1,8 @@
 'use strict';
 // Alternativa 1.1 — Bridge local con PESO (Función 1, en vivo) + REPORTE DE VENTAS (Función 72) + CIERRE (Función 32).
 // Mantiene en funcionamiento la Función 1 (peso por WebSocket); agrega endpoints REST para el reporte.
-// Uso:  node bridge.js [COM_PORT]        (modo real)
+// Uso:  node bridge.js                  (modo real, detecta solo el COM del FTDI de la balanza)
+//       node bridge.js [COM_PORT]        (modo real, COM forzado)
 //       SIMULAR=1 node bridge.js        (modo simulador, sin COM)
 
 const path = require('path');
@@ -10,8 +11,11 @@ const { WebSocketServer } = require('ws');
 const { SerialPort } = require('serialport');
 const P = require('./protocol');
 const simulator = require('./simulator');
+const { detectarPuertoFtdi } = require('./puerto');
 
-const COM_PORT = process.env.COM_PORT || process.argv[2] || 'COM3';
+// Sin COM_PORT se busca el FTDI de la balanza en cada intento de apertura (sigue al COM si Windows lo renumera).
+const COM_FORZADO = process.env.COM_PORT || process.argv[2] || null;
+let comPort = COM_FORZADO; // COM en uso (null hasta detectarlo)
 const HTTP_PORT = Number(process.env.PORT || 3001);
 const SIMULAR = process.env.SIMULAR === '1' || process.argv.includes('--sim');
 
@@ -57,7 +61,7 @@ app.get('/peso', (req, res) => {
   if (!lastReading) return res.status(503).json({ error: 'sin lectura todavía', connected });
   res.json(lastReading);
 });
-app.get('/estado', (req, res) => res.json({ connected, comPort: SIMULAR ? 'SIMULADOR' : COM_PORT, baud: P.BAUD, simulando: SIMULAR, mode }));
+app.get('/estado', (req, res) => res.json({ connected, comPort: SIMULAR ? 'SIMULADOR' : (comPort || 'buscando FTDI…'), baud: P.BAUD, simulando: SIMULAR, mode }));
 
 // --- Reporte de ventas (Función 72) ---
 // GET /ventas?desde=DDMMAA&hasta=DDMMAA   (ambos opcionales; default = hoy..hoy es responsabilidad del cliente)
@@ -176,7 +180,7 @@ app.post('/sim/ventas/nueva', (req, res) => {
 });
 
 const server = app.listen(HTTP_PORT, () => {
-  const fuente = SIMULAR ? 'SIMULADOR (sin balanza)' : `COM=${COM_PORT} @${P.BAUD}`;
+  const fuente = SIMULAR ? 'SIMULADOR (sin balanza)' : `COM=${COM_FORZADO || 'auto (FTDI)'} @${P.BAUD}`;
   console.log(`[bridge 1.1] http://localhost:${HTTP_PORT}/  (peso) · /reportes.html (ventas)   ${fuente}`);
 });
 
@@ -410,15 +414,19 @@ function onData(chunk) {
 }
 
 // ---------- Conexión + polling F1 ----------
-function openPort() {
-  port = new SerialPort({ path: COM_PORT, baudRate: P.BAUD, dataBits: 8, parity: 'none', stopBits: 1, autoOpen: false });
+async function openPort() {
+  if (!COM_FORZADO) {
+    try { comPort = await detectarPuertoFtdi(); }
+    catch (err) { connected = false; console.error(`[serial] ${err.message}`); broadcast({ connected: false, error: err.message, ts: Date.now() }); return scheduleRetry(); }
+  }
+  port = new SerialPort({ path: comPort, baudRate: P.BAUD, dataBits: 8, parity: 'none', stopBits: 1, autoOpen: false });
   port.on('data', onData);
   port.on('close', () => { connected = false; stopPoll(); broadcast({ connected: false, estado: 'desconectado', ts: Date.now() }); scheduleRetry(); });
   port.on('error', (err) => { connected = false; console.error('[serial]', err.message); broadcast({ connected: false, error: err.message, ts: Date.now() }); });
   port.open((err) => {
-    if (err) { connected = false; console.error(`[serial] no se pudo abrir ${COM_PORT}: ${err.message}`); broadcast({ connected: false, error: err.message, ts: Date.now() }); return scheduleRetry(); }
+    if (err) { connected = false; console.error(`[serial] no se pudo abrir ${comPort}: ${err.message}`); broadcast({ connected: false, error: err.message, ts: Date.now() }); return scheduleRetry(); }
     connected = true;
-    console.log(`[serial] abierto ${COM_PORT}`);
+    console.log(`[serial] abierto ${comPort}${COM_FORZADO ? '' : ' (detectado FTDI)'}`);
     broadcast({ connected: true, estado: 'conectado', ts: Date.now() });
     startPoll();
   });

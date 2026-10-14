@@ -1,13 +1,15 @@
 'use strict';
 // Opción C — Electron: abre el COM en el proceso principal y envía el peso al renderer por IPC.
-// COM por env: COM_PORT=COM5 npm start
+// COM: se detecta solo (FTDI de la balanza). Para forzarlo: COM_PORT=COM5 npm start
 
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const { SerialPort } = require('serialport');
 const { buildFrame, parseWeightFn1, BAUD, POLL_MS, ADDRESS } = require('./protocol');
+const { detectarPuertoFtdi } = require('./puerto');
 
-const COM_PORT = process.env.COM_PORT || 'COM3';
+const COM_FORZADO = process.env.COM_PORT || null;
+let comPort = COM_FORZADO; // COM en uso (null hasta detectarlo)
 
 let win = null;
 let port = null;
@@ -36,9 +38,17 @@ function flushFrame() {
   }
 }
 
-function openPort() {
+async function openPort() {
+  if (!COM_FORZADO) {
+    try {
+      comPort = await detectarPuertoFtdi();
+    } catch (err) {
+      send('estado', { connected: false, error: err.message });
+      return scheduleRetry();
+    }
+  }
   port = new SerialPort({
-    path: COM_PORT, baudRate: BAUD, dataBits: 8, parity: 'none', stopBits: 1, autoOpen: false,
+    path: comPort, baudRate: BAUD, dataBits: 8, parity: 'none', stopBits: 1, autoOpen: false,
   });
   port.on('data', onData);
   port.on('close', () => { stopPoll(); send('estado', { connected: false }); scheduleRetry(); });
@@ -48,7 +58,7 @@ function openPort() {
       send('estado', { connected: false, error: err.message });
       return scheduleRetry();
     }
-    send('estado', { connected: true });
+    send('estado', { connected: true, info: `abierto ${comPort}` });
     startPoll();
   });
 }
@@ -75,7 +85,7 @@ function createWindow() {
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.webContents.on('did-finish-load', () => {
-    send('estado', { connected: false, info: `COM=${COM_PORT} @${BAUD}` });
+    send('estado', { connected: false, info: `COM=${COM_FORZADO || 'auto (FTDI)'} @${BAUD}` });
     openPort();
   });
 }

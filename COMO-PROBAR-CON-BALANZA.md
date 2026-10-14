@@ -46,12 +46,11 @@ Transporte: COM serial → REST + WebSocket. Sirve para DrSystel web.
 ```bash
 cd 01-bridge-local
 npm install                       # si no se hizo antes
-# PowerShell:
-$env:COM_PORT="COM5"; npm start
-# (Git Bash:  COM_PORT=COM5 npm start)
+npm start                         # detecta solo el COM del FTDI de la balanza
+# para forzar un COM — PowerShell: $env:COM_PORT="COM5"; npm start   (Git Bash: COM_PORT=COM5 npm start)
 ```
 1. Abrir **http://localhost:3001** en cualquier navegador.
-2. En la consola debe verse `[serial] abierto COM5` (sin "no se pudo abrir").
+2. En la consola debe verse `[serial] abierto COMx (detectado FTDI)` (sin "no se pudo abrir" ni "no se encontró la balanza").
 3. Poner peso → la UI muestra kg en vivo y semáforo verde al estabilizar.
 4. Click **"Capturar peso (REST /peso)"** → devuelve el último valor estable (esto es lo que usaría el ERP al confirmar una venta).
 

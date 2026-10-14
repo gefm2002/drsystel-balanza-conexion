@@ -12,7 +12,9 @@ Extiende la **Alternativa 1** (`../01-bridge-local`, la que funcionó con la bal
 
 ```bash
 npm install                         # (las deps ya vienen copiadas de la 1.0)
-# Modo real (con balanza):
+# Modo real (con balanza) — detecta solo el COM del FTDI (VID 0403 / PID 6001):
+npm start
+# o forzando el puerto:
 COM_PORT=COM5 npm start             # PowerShell: $env:COM_PORT="COM5"; npm start
 # Modo simulador (sin balanza):
 SIMULAR=1 npm start                 # PowerShell: $env:SIMULAR="1"; npm start

@@ -8,7 +8,7 @@ que la balanza. Latencia mínima, una sola pieza.
 
 ```bash
 npm install                      # descarga el binario de Electron (~pesado, 1ra vez)
-npm start                        # COM3 por defecto
+npm start                        # detecta solo el COM del FTDI de la balanza
 # o:  COM_PORT=COM5 npm start    (PowerShell: $env:COM_PORT="COM5"; npm start)
 ```
 

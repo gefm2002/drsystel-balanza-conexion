@@ -14,14 +14,15 @@ Balanza ──USB-B──> COM5 ──(serial 115200 8N1, dirección 0)──> b
 ```
 
 - **Vía elegida:** Opción A / A.1 — **bridge local** (`01.1-bridge-reportes`).
-- **Puerto serie:** `COM5` (FTDI, VID_0403+PID_6001) — puede cambiar de número.
+- **Puerto serie:** `COM5` (FTDI, VID_0403+PID_6001) — cambia de número según la PC; el bridge lo **detecta solo**.
 - **Parámetros:** `115200 / 8 / N / 1`, **dirección de balanza `0`** ⚠️ (clave, ver abajo).
 - **Puerto del servidor:** `http://localhost:3001` (REST + `ws://localhost:3001`).
 
 ```powershell
 cd 01.1-bridge-reportes
 npm install
-$env:COM_PORT="COM5"; npm start      # ajustar COM si cambió
+npm start                            # detecta el COM del FTDI solo
+# $env:COM_PORT="COM5"; npm start    # solo para forzar un COM puntual
 ```
 → `http://localhost:3001/` (peso en vivo) · `http://localhost:3001/reportes.html` (ventas + cobro).
 
@@ -41,7 +42,8 @@ $env:COM_PORT="COM5"; npm start      # ajustar COM si cambió
    cd 01.1-bridge-reportes
    node -e "require('serialport').SerialPort.list().then(p=>p.forEach(x=>console.log(x.path,x.friendlyName)))"
    ```
-6. **Arrancar el bridge** con `COM_PORT` apuntando al COM correcto (ver TL;DR).
+6. **Arrancar el bridge** (ver TL;DR). Busca el FTDI (VID 0403 / PID 6001) y abre su COM, sea cual sea el
+   número. Si no lo encuentra, el log lista los puertos vistos y reintenta cada 2 s. `COM_PORT` lo fuerza.
 
 > **⚠️ El fix que lo hizo andar:** el protocolo original polleaba la **dirección 1**; la unidad real
 > responde a la **dirección 0** (`protocol.js: ADDRESS = 0`). Con otra dirección el puerto abre
