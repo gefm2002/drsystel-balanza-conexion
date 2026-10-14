@@ -1,14 +1,20 @@
 # Releases — instalador del puente de balanza (Erp Los Hermanos)
 
-Copia de la distribución de `matiaspautasso/erp-los-hermanos-releases`: instalador del puente de
-balanza de Erp Los Hermanos (binarios; el código fuente vive en el repo privado
-`erp-los-hermanos`, carpeta `app/bridge`).
+Distribución pública del instalador del puente de balanza de Erp Los Hermanos (binarios; el
+código fuente del puente vive en el repo privado `erp-los-hermanos`, carpeta `app/bridge`).
+Reemplaza al repo `erp-los-hermanos-releases`.
 
-Los instaladores están adjuntos a los **Releases** de este repo, con el mismo tag.
+Los instaladores están adjuntos a los **Releases** de este repo.
 
-> Este repo es **privado**: la PC de caja no puede descargar el instalador desde acá sin iniciar
-> sesión en GitHub. La descarga pública que usa el botón del ERP
-> (`VITE_BALANZA_PUENTE_INSTALADOR_URL`) sigue siendo la de `erp-los-hermanos-releases`.
+**Descargar siempre la última versión** (link fijo, sirve para el botón del ERP,
+`VITE_BALANZA_PUENTE_INSTALADOR_URL`):
+
+https://github.com/matiaspautasso/drsystel-balanza-conexion/releases/latest/download/PuenteBalanza-Setup.exe
+
+> Al publicar una versión nueva, adjuntar el setup **dos veces**: con su nombre versionado
+> (`PuenteBalanza-Setup-X.Y.Z.exe`) y como `PuenteBalanza-Setup.exe`, y marcar el release como
+> *Latest*. Así el link fijo de arriba pasa a servir la versión nueva sin tocar Railway (solo
+> hay que subir `VITE_BALANZA_PUENTE_VERSION_MIN` si se quiere forzar el aviso de actualizar).
 
 | Tag | Fecha | Instalador | SHA256 |
 |---|---|---|---|
