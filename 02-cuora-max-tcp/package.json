@@ -5,7 +5,8 @@
   "description": "PoC Opción B — Cuora MAX por TCP/IP: socket a la balanza -> REST + WebSocket -> navegador",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "probe:f72": "node ventas-probe.js"
   },
   "dependencies": {
     "express": "^4.19.2",
